@@ -15,3 +15,6 @@ fastmcp>=2.0.0
 # installs cleanly on Intel macOS without an LLVM toolchain). matplotlib is only
 # used for the optional equity-curve PNG and degrades gracefully if absent.
 matplotlib>=3.7.0
+
+# Tests (dev) — run: .venv/bin/python -m pytest backtest/test_engine.py -q
+pytest>=7.0.0

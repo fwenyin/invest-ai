@@ -8,6 +8,8 @@ argument-hint: "TICKER STRATEGY  (e.g. 'SPY ma_cross'; strategies: ma_cross, rsi
 
 Run the backtest engine and interpret the result. Arguments: $ARGUMENTS
 
+Follow the **`backtest-runner` skill** for how to run the engine and read the JSON honestly; the steps below are the summary.
+
 ## Steps
 1. If no/invalid args, run `.venv/bin/python backtest/engine.py --list` and show available strategies.
 2. Otherwise run: `.venv/bin/python backtest/engine.py <TICKER> <STRATEGY> --tearsheet`

@@ -8,6 +8,11 @@ sized plans, journals.
 - **Slash commands** (`.claude/commands/`) orchestrate the workflow; they spawn **subagents**
   (`.claude/agents/`) via the Task tool in sequence: analysts → bull/bear debate → trader →
   risk-manager → portfolio-manager → (postmarket) reflection-agent.
+- **Skills** (`.claude/skills/`) hold the reusable procedures the agents/commands lean on:
+  `position-sizing` (the canonical size/heat/risk-gate math) and `backtest-runner` (how to run
+  and honestly read a backtest). Treat these as the single source of truth.
+- **Report template** lives at `.claude/templates/report_template.md` (not in `commands/`, so it
+  isn't surfaced as a slash command).
 - **Data** comes from the `to-the-moon-data` MCP server (`tools/mcp_server.py`) — call those
   `mcp__to-the-moon-data__*` tools, or the equivalent `tools/*.py` CLIs.
 - **State**: `portfolio/positions.json` (truth for reconciliation), `portfolio/longterm.json`,
@@ -25,4 +30,9 @@ sized plans, journals.
 
 ## Python env
 Use `.venv/bin/python` (created by `scripts/install.sh`). Keys load from `.env` (gitignored).
-Don't print secret values.
+Don't print secret values. Project permissions live in `.claude/settings.json`; personal
+overrides go in `.claude/settings.local.json` (gitignored).
+
+## Tests
+`.venv/bin/python -m pytest backtest/test_engine.py -q` — pins the engine's no-look-ahead and
+trade-accounting guarantees (pure functions, no network). Run after touching `backtest/`.

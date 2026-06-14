@@ -1,9 +1,12 @@
-"""Trump / Truth Social posts via the free, auto-updating GitHub archive.
+"""Trump / Truth Social posts via a free, auto-updating archive (no auth, no key).
 
-Source: https://github.com/stiles/trump-truth-social-archive  (no auth, no key).
+Source: the stiles/trump-truth-social-archive project. Its GitHub-hosted JSON was
+frozen on 2025-10-26 when the scraper's Action was disabled; the project now
+publishes a live mirror (refreshed ~every 5 min) at ix.cnn.io, which is what we
+read. We keep the stale GitHub file as a fallback only.
 Returns the most recent posts (sorted newest-first) with an age note, and flags
 how many fall inside the requested `hours` window — so the agent always gets the
-latest available context even if the archive lags.
+latest available context even if the feed lags.
 CLI:  python tools/trump.py            # latest posts
       python tools/trump.py --hours 24
 """
@@ -17,7 +20,27 @@ import requests
 
 from common import cache_get, cache_set, emit, err, ok
 
-ARCHIVE_JSON = "https://raw.githubusercontent.com/stiles/trump-truth-social-archive/main/data/truth_archive.json"
+# Live mirror (refreshed ~every 5 min); the GitHub raw file is frozen since
+# 2025-10-26 and kept only as a last-resort fallback.
+ARCHIVE_URLS = [
+    "https://ix.cnn.io/data/truth-social/truth_archive.json",
+    "https://raw.githubusercontent.com/stiles/trump-truth-social-archive/main/data/truth_archive.json",
+]
+
+
+def _fetch() -> tuple[object | None, str | None]:
+    """Try each source in order; return (data, error_from_last_attempt)."""
+    last_err = None
+    for url in ARCHIVE_URLS:
+        try:
+            r = requests.get(url, timeout=25)
+            if r.status_code != 200:
+                last_err = f"{url} returned HTTP {r.status_code}"
+                continue
+            return r.json(), None
+        except Exception as e:
+            last_err = f"could not fetch {url}: {e}"
+    return None, last_err
 
 
 def recent(hours: int = 24, limit: int = 25) -> dict:
@@ -25,13 +48,9 @@ def recent(hours: int = 24, limit: int = 25) -> dict:
     if cached:
         return cached
 
-    try:
-        r = requests.get(ARCHIVE_JSON, timeout=25)
-        if r.status_code != 200:
-            return err(f"Truth Social archive returned HTTP {r.status_code}")
-        data = r.json()
-    except Exception as e:
-        return err(f"could not fetch Truth Social archive: {e}")
+    data, fetch_err = _fetch()
+    if data is None:
+        return err(fetch_err or "could not fetch Truth Social archive")
 
     posts = data if isinstance(data, list) else data.get("posts", data.get("data", []))
 

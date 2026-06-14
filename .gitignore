@@ -3,6 +3,9 @@
 config/.env
 *.key
 
+# Corporate CA bundle (machine-specific; built by scripts/setup_corp_ca.sh)
+config/corp-ca-bundle.pem
+
 # Python
 __pycache__/
 *.pyc
@@ -20,6 +23,12 @@ portfolio/positions.json
 portfolio/longterm.json
 portfolio/journal/
 portfolio/memory/lessons.json
+
+# Claude Code — personal permission overrides (shared rules live in .claude/settings.json)
+.claude/settings.local.json
+
+# Pytest
+.pytest_cache/
 
 # OS
 .DS_Store

@@ -26,20 +26,43 @@ def load_env() -> None:
         return
     _ENV_LOADED = True
     env_path = ROOT / ".env"
-    if not env_path.exists():
-        return
-    try:
-        from dotenv import load_dotenv
+    if env_path.exists():
+        try:
+            from dotenv import load_dotenv
 
-        load_dotenv(env_path)
-    except Exception:
-        # Minimal parser if python-dotenv isn't installed yet.
-        for line in env_path.read_text().splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            k, _, v = line.partition("=")
-            os.environ.setdefault(k.strip(), v.strip())
+            load_dotenv(env_path)
+        except Exception:
+            # Minimal parser if python-dotenv isn't installed yet.
+            for line in env_path.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                os.environ.setdefault(k.strip(), v.strip())
+    _wire_ca_bundle()
+
+
+def _wire_ca_bundle() -> None:
+    """Point requests/ssl at a corporate CA bundle when one is present.
+
+    Behind a TLS-intercepting proxy, certifi's public store can't verify the
+    proxy's substituted cert ('unable to get local issuer certificate'), so the
+    Finnhub feeds (news/econ/earnings) fail. If a bundle is configured (via
+    REQUESTS_CA_BUNDLE/SSL_CERT_FILE) or sitting at config/corp-ca-bundle.pem,
+    export it through both standard env vars so `requests` (REQUESTS_CA_BUNDLE)
+    and raw ssl/httpx (SSL_CERT_FILE) honor it. Always resolved to an absolute
+    path so the working directory doesn't matter.
+    """
+    bundle = os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("SSL_CERT_FILE")
+    if bundle and not Path(bundle).is_absolute():
+        bundle = str((ROOT / bundle).resolve())
+    if not bundle:
+        default = ROOT / "config" / "corp-ca-bundle.pem"
+        bundle = str(default) if default.exists() else None
+    if not bundle or not Path(bundle).exists():
+        return
+    os.environ["REQUESTS_CA_BUNDLE"] = bundle
+    os.environ["SSL_CERT_FILE"] = bundle
 
 
 def env(key: str, default: str | None = None) -> str | None:

@@ -29,6 +29,6 @@ You are running the short-term desk's **pre-market** session. Goal: a concrete, 
 
 8. **Plan**: run `portfolio-manager` → the final action list (reconciled with current positions).
 
-9. **Write the report** to `reports/daily/<YYYY-MM-DD>/premarket.md` using the template in `.claude/commands/_report_template.md`. Keep it scannable — the human reads this in 2 minutes before the open.
+9. **Write the report** to `reports/daily/<YYYY-MM-DD>/premarket.md` using the template in `.claude/templates/report_template.md`. Keep it scannable — the human reads this in 2 minutes before the open.
 
 End your message with a 5-line TL;DR: regime, bias, top 3 trade ideas (with entry/stop), and any event blackout warning.

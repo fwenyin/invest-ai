@@ -1,0 +1,2 @@
+- [Corp laptop TLS](corp-laptop-tls.md) — company proxy breaks Python HTTPS; fix via Keychain CA bundle
+- [Trump source stale](trump-source-stale.md) — Truth Social feed ~6 weeks old; CNN live mirror blocked by proxy

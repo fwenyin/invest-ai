@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import calendar_econ
+import financials
 import news
 import options
 import prices
@@ -94,6 +95,12 @@ def get_economic_calendar() -> dict:
 def get_earnings_calendar() -> dict:
     """Upcoming earnings releases for the next week."""
     return calendar_econ.earnings()
+
+
+@mcp.tool
+def get_fundamentals(ticker: str) -> dict:
+    """Structured fundamentals: valuation multiples, margins, growth, balance-sheet health, statement trend."""
+    return financials.fundamentals(ticker)
 
 
 # ── Alt data / sentiment ─────────────────────────────────────────────

@@ -36,8 +36,9 @@ def economic(days_ahead: int = 7) -> dict:
     try:
         frm = datetime.utcnow().strftime("%Y-%m-%d")
         to = (datetime.utcnow() + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
-        raw = client.economic_calendar(_from=frm, to=to)
-        events = raw.get("economicCalendar", []) if isinstance(raw, dict) else []
+        # finnhub-python renamed this to calendar_economic (>=2.4.x).
+        raw = client.calendar_economic(_from=frm, to=to)
+        events = (raw.get("economicCalendar") or raw.get("data") or []) if isinstance(raw, dict) else []
         # keep US, sorted by impact
         us = [e for e in events if e.get("country") in ("US", "United States")]
         us.sort(key=lambda e: ({"high": 0, "medium": 1, "low": 2}.get(str(e.get("impact")).lower(), 3)))

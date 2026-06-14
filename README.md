@@ -58,7 +58,8 @@ One cheap key (**Finnhub** free tier) + free sources. Exposed to the agents via 
 | `options.py` | yfinance | chain, IV, put/call (delayed) |
 | `news.py` | Finnhub → Yahoo RSS | company + market news |
 | `calendar_econ.py` | Finnhub | econ (FOMC/CPI/NFP) + earnings calendar |
-| `trump.py` | free GitHub archive | Truth Social posts, no auth |
+| `financials.py` | yfinance | valuation multiples, margins, growth, balance-sheet health |
+| `trump.py` | free auto-updating archive (ix.cnn.io mirror) | Truth Social posts, ~5-min refresh, no auth |
 | `reddit.py` | public reddit JSON | WSB/stocks/options sentiment |
 | `substack.py` | your private RSS | Bottom Up Bulletin full posts |
 
@@ -138,8 +139,17 @@ The daily runs reconcile against it — garbage in, garbage out.
 
 ## Layout
 ```
-.claude/agents      desk subagents          backtest/      vectorbt engine + strategies
+.claude/agents      desk subagents          backtest/      engine + strategies + tests
 .claude/commands    slash-command workflows portfolio/     positions, journal, memory
-tools/              data layer + MCP server config/        risk rules, universe, .env
-reports/            generated game plans     scripts/       install + scheduling
+.claude/skills      reusable procedures     tools/         data layer + MCP server
+.claude/templates   shared report template  config/        risk rules, universe, .env
+.claude/settings.json  shared permissions   scripts/       install + scheduling
+reports/            generated game plans
 ```
+
+## Tests
+```bash
+.venv/bin/python -m pytest backtest/test_engine.py -q
+```
+Pins the backtest engine's correctness claims — **no look-ahead**, next-bar fills, and honest
+trade accounting. Pure-function tests, so they need no network or API keys.
