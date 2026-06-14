@@ -1,0 +1,15 @@
+{
+  "description": "The desk's tradable universe + watchlists. Agents scan these. Edit freely.",
+  "index_etfs": ["SPY", "QQQ", "IWM", "DIA"],
+  "sector_etfs": ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLB", "XLU", "XLRE", "XLC"],
+  "mega_caps": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "JPM", "LLY"],
+  "high_beta_movers": ["AMD", "PLTR", "COIN", "MARA", "SMCI", "NFLX", "CRM", "UBER", "SHOP"],
+  "macro_tells": {
+    "futures": ["ES=F", "NQ=F", "YM=F", "RTY=F"],
+    "commodities": ["GC=F", "CL=F", "SI=F"],
+    "rates_fx_vol": ["^TNX", "DX-Y.NYB", "^VIX"]
+  },
+  "fx_pairs": ["EURUSD=X", "GBPUSD=X", "USDJPY=X"],
+  "watchlist": [],
+  "earnings_watch": []
+}

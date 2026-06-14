@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "to-the-moon-data": {
+      "command": ".venv/bin/python",
+      "args": ["tools/mcp_server.py"],
+      "env": {}
+    }
+  }
+}

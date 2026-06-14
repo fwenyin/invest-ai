@@ -1,0 +1,47 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Hard risk limits enforced by the `risk-manager` agent on EVERY trade idea.
+# These are deliberately conservative. Edit to fit your account and tolerance.
+# ──────────────────────────────────────────────────────────────────────────
+
+account:
+  equity: 10000            # USD. Keep in sync with ACCOUNT_EQUITY in .env
+  currency: USD
+
+per_trade:
+  max_risk_pct: 1.0        # risk at most 1% of equity per trade (entry -> stop)
+  min_reward_to_risk: 2.0  # reject ideas with R:R below 2:1
+  # position size = (equity * max_risk_pct/100) / (entry - stop)
+
+portfolio:
+  max_open_heat_pct: 6.0       # sum of open risk across all positions <= 6%
+  max_position_pct: 20.0       # no single name > 20% of equity (notional)
+  max_sector_pct: 35.0         # no single sector > 35% of equity
+  max_correlated_positions: 3  # max simultaneous highly-correlated longs
+
+daily:
+  max_loss_pct: 3.0        # if realized day P&L <= -3%, go flat, issue NO new ideas
+  max_new_trades: 5        # cap new intraday entries per day (overtrading guard)
+
+event_blackout:
+  # No NEW intraday entries inside +/- this many minutes of a high-impact release.
+  window_minutes: 30
+  high_impact:
+    - FOMC
+    - CPI
+    - "Nonfarm Payrolls"
+    - PCE
+    - "PPI"
+    - "Retail Sales"
+
+instruments:
+  # Per-instrument extra guardrails.
+  options:
+    max_pct_of_equity: 5.0      # total premium at risk in options <= 5% of equity
+    avoid_dte_below: 2          # don't open positions expiring in < 2 days (gamma risk)
+    prefer_dte_range: [14, 45]  # preferred days-to-expiry window
+  futures:
+    max_contracts_note: "size by ATR so per-trade risk still <= max_risk_pct"
+
+notes:
+  - "These are RISK CAPS, not entry signals. An idea must pass ALL checks to be approved."
+  - "When in doubt, the risk-manager rejects. Capital preservation beats FOMO."

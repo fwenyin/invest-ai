@@ -1,0 +1,25 @@
+# Secrets — NEVER commit
+.env
+config/.env
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Cached data & generated artifacts (regenerated each run)
+data/cache/
+backtest/results/
+reports/daily/
+reports/weekly/
+
+# Personal trading state — keep local, do not push
+portfolio/positions.json
+portfolio/longterm.json
+portfolio/journal/
+portfolio/memory/lessons.json
+
+# OS
+.DS_Store

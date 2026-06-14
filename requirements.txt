@@ -1,0 +1,17 @@
+# Data layer
+yfinance>=0.2.40
+finnhub-python>=2.4.20
+feedparser>=6.0.11
+requests>=2.31.0
+pandas>=2.0.0
+numpy>=1.24.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# MCP server (exposes tools/ to the agents)
+fastmcp>=2.0.0
+
+# Backtesting — self-contained pandas/numpy engine (no vectorbt/numba, so it
+# installs cleanly on Intel macOS without an LLVM toolchain). matplotlib is only
+# used for the optional equity-curve PNG and degrades gracefully if absent.
+matplotlib>=3.7.0
