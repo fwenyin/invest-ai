@@ -29,6 +29,12 @@ import strategies  # noqa: E402
 
 TRADING_DAYS = 252
 
+SURVIVORSHIP_WARNING = (
+    "Universe is today's listed/surviving names (config/universe.json) — delisted, "
+    "merged, or bankrupt tickers are absent, and the list skews to recent winners. "
+    "Backtest returns are therefore optimistic; treat them as an UPPER bound, not an estimate."
+)
+
 
 def _load_prices(ticker: str, years: int) -> pd.DataFrame:
     import yfinance as yf
@@ -39,17 +45,29 @@ def _load_prices(ticker: str, years: int) -> pd.DataFrame:
     return df
 
 
-def _positions(entries: pd.Series, exits: pd.Series) -> pd.Series:
-    """Long-only state machine: enter on entry when flat, exit on exit when long."""
+def _positions(entries: pd.Series, exits: pd.Series, max_hold: int | None = None) -> pd.Series:
+    """Long-only state machine: enter on entry when flat, exit on exit when long.
+
+    `max_hold` (optional) forces an exit `max_hold` bars after the ACTUAL entry —
+    measured from the realized fill, not from the entry *signal*. This is the
+    correct way to express a time-based exit: signal-shifting (e.g.
+    ``entries.shift(N)``) misfires when entries cluster or are ignored while
+    already long, firing exits that don't correspond to a real open position.
+    """
     pos = np.zeros(len(entries), dtype=float)
     holding = 0.0
+    bars_held = 0
     e = entries.to_numpy()
     x = exits.to_numpy()
     for i in range(len(e)):
-        if holding == 0.0 and e[i]:
+        if holding == 1.0:
+            bars_held += 1
+            if x[i] or (max_hold is not None and bars_held >= max_hold):
+                holding = 0.0
+                bars_held = 0
+        elif holding == 0.0 and e[i]:
             holding = 1.0
-        elif holding == 1.0 and x[i]:
-            holding = 0.0
+            bars_held = 0
         pos[i] = holding
     return pd.Series(pos, index=entries.index)
 
@@ -69,9 +87,10 @@ def _trades(close: pd.Series, pos: pd.Series, cost: float) -> list[float]:
 
 
 def _simulate(close: pd.Series, entries: pd.Series, exits: pd.Series,
-              fees: float, slippage: float, init_cash: float) -> dict:
+              fees: float, slippage: float, init_cash: float,
+              max_hold: int | None = None) -> dict:
     cost = fees + slippage
-    pos = _positions(entries, exits)
+    pos = _positions(entries, exits, max_hold)
     daily_ret = close.pct_change().fillna(0.0)
     gross = daily_ret * pos.shift(1).fillna(0.0)          # act next bar (no look-ahead)
     turnover = pos.diff().abs().fillna(0.0)               # 1 on each entry/exit
@@ -113,12 +132,13 @@ def run(ticker: str, strategy: str, years: int = 5, fees: float = 0.0005,
     strat = strategies.get(strategy)
     df = _load_prices(ticker, years)
     entries, exits = strat.signals(df)
+    max_hold = getattr(strat, "MAX_HOLD", None)  # optional time-based exit (bars since fill)
     close = df["Close"]
     split = int(len(df) * 0.7)
 
-    full = _simulate(close, entries, exits, fees, slippage, cash)
-    is_ = _simulate(close.iloc[:split], entries.iloc[:split], exits.iloc[:split], fees, slippage, cash)
-    oos = _simulate(close.iloc[split:], entries.iloc[split:], exits.iloc[split:], fees, slippage, cash)
+    full = _simulate(close, entries, exits, fees, slippage, cash, max_hold)
+    is_ = _simulate(close.iloc[:split], entries.iloc[:split], exits.iloc[:split], fees, slippage, cash, max_hold)
+    oos = _simulate(close.iloc[split:], entries.iloc[split:], exits.iloc[split:], fees, slippage, cash, max_hold)
     bh = round(float((close.iloc[-1] / close.iloc[0] - 1) * 100), 2)
 
     result = {
@@ -131,6 +151,7 @@ def run(ticker: str, strategy: str, years: int = 5, fees: float = 0.0005,
         "out_of_sample": oos["stats"],
         "buy_hold_return_pct": bh,
         "verdict": _verdict(full["stats"], oos["stats"], bh),
+        "survivorship_warning": SURVIVORSHIP_WARNING,
     }
 
     out_path = RESULTS / f"{ticker.upper()}_{strategy}.json"
@@ -160,6 +181,68 @@ def run(ticker: str, strategy: str, years: int = 5, fees: float = 0.0005,
     return result
 
 
+def _universe_tickers() -> list[str]:
+    """Equity names from config/universe.json — the actual scan universe."""
+    uni = json.loads((ROOT / "config" / "universe.json").read_text())
+    names: list[str] = []
+    for k in ("index_etfs", "sector_etfs", "mega_caps", "high_beta_movers"):
+        names.extend(uni.get(k, []))
+    return list(dict.fromkeys(names))  # de-dupe, preserve order
+
+
+def run_universe(strategy: str, years: int = 5, fees: float = 0.0005,
+                 slippage: float = 0.0005, cash: float = 10000) -> dict:
+    """Run one strategy across the WHOLE universe and aggregate.
+
+    A single-ticker backtest is cherry-picked by construction. The real question is
+    whether a rule has positive expectancy across the names the desk actually scans.
+    A rule that only works on one ticker is curve-fit, not an edge.
+    """
+    tickers = _universe_tickers()
+    rows, errors = [], {}
+    for t in tickers:
+        try:
+            r = run(t, strategy, years, fees, slippage, cash, tearsheet=False)
+            rows.append({
+                "ticker": t,
+                "total_return_pct": r["full_period"]["total_return_pct"],
+                "buy_hold_return_pct": r["buy_hold_return_pct"],
+                "beat_bh": r["full_period"]["total_return_pct"] > r["buy_hold_return_pct"],
+                "sharpe": r["full_period"]["sharpe"],
+                "oos_sharpe": r["out_of_sample"]["sharpe"],
+                "num_trades": r["full_period"]["num_trades"],
+                "tradeable": r["verdict"].startswith("TRADEABLE"),
+            })
+        except Exception as e:
+            errors[t] = str(e)
+
+    n = len(rows)
+    beat = sum(r["beat_bh"] for r in rows)
+    tradeable = sum(r["tradeable"] for r in rows)
+    avg_excess = (round(sum(r["total_return_pct"] - r["buy_hold_return_pct"] for r in rows) / n, 2)
+                  if n else 0.0)
+    summary = {
+        "strategy": strategy,
+        "names_tested": n,
+        "beat_buy_hold": f"{beat}/{n}",
+        "tradeable_verdict": f"{tradeable}/{n}",
+        "avg_excess_return_vs_bh_pct": avg_excess,
+        "verdict": (
+            f"BROAD EDGE: beats B&H on {beat}/{n} names and passes the full verdict on "
+            f"{tradeable}/{n}." if n and tradeable >= max(3, n // 2) and beat > n / 2 else
+            f"NO BROAD EDGE — beats B&H on only {beat}/{n}, fully tradeable on {tradeable}/{n}. "
+            "Likely curve-fit to whichever single names worked."),
+        "survivorship_warning": SURVIVORSHIP_WARNING,
+        "per_ticker": sorted(rows, key=lambda r: r["total_return_pct"] - r["buy_hold_return_pct"],
+                             reverse=True),
+        "errors": errors,
+    }
+    out_path = RESULTS / f"UNIVERSE_{strategy}.json"
+    out_path.write_text(json.dumps(summary, indent=2))
+    summary["saved_to"] = str(out_path)
+    return summary
+
+
 def _verdict(full: dict, oos: dict, bh: float) -> str:
     reasons = []
     edge = full["total_return_pct"] > bh
@@ -186,9 +269,18 @@ if __name__ == "__main__":
     p.add_argument("--cash", type=float, default=10000)
     p.add_argument("--tearsheet", action="store_true")
     p.add_argument("--list", action="store_true")
+    p.add_argument("--universe", action="store_true",
+                   help="run STRATEGY across the whole config/universe.json and aggregate")
     a = p.parse_args()
 
-    if a.list or not a.ticker:
+    if a.list:
+        print(json.dumps({n: m.DESCRIPTION for n, m in strategies.REGISTRY.items()}, indent=2))
+        sys.exit(0)
+    if a.universe:
+        strat = a.strategy or a.ticker or "ma_cross"  # `engine.py --universe gap_and_go`
+        print(json.dumps(run_universe(strat, a.years, a.fees, a.slippage, a.cash), indent=2))
+        sys.exit(0)
+    if not a.ticker:
         print(json.dumps({n: m.DESCRIPTION for n, m in strategies.REGISTRY.items()}, indent=2))
         sys.exit(0)
     print(json.dumps(run(a.ticker, a.strategy or "ma_cross", a.years, a.fees,

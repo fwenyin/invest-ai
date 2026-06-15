@@ -108,6 +108,28 @@ def test_verdict_requires_edge_robustness_and_sample_size():
         good_full, {"sharpe": 0.1, "profit_factor": 1.0}, bh=20.0)
 
 
+def test_max_hold_exits_from_actual_fill_not_signal():
+    """A time-based exit must count bars from the realized entry, not the signal.
+
+    Regression for the old gap_and_go bug (`exits = entries.shift(N)`), which fired
+    exits tied to the entry *signal* even when the entry was ignored while already long.
+    """
+    i = _idx(8)
+    # Entry signals on bars 0 and 1; the bar-1 signal is ignored (already long).
+    entries = pd.Series([True, True, False, False, False, False, False, False], index=i)
+    exits = pd.Series([False] * 8, index=i)
+    pos = engine._positions(entries, exits, max_hold=3)
+    # Enter bar0 → held bars 0,1,2 → forced exit bar3 (3 bars after the fill), then flat.
+    assert list(pos) == [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+
+def test_max_hold_none_is_backward_compatible():
+    i = _idx(4)
+    entries = pd.Series([True, False, False, False], index=i)
+    exits = pd.Series([False, False, False, False], index=i)
+    assert list(engine._positions(entries, exits)) == [1.0, 1.0, 1.0, 1.0]
+
+
 def test_no_finite_blowups_on_flat_strategy():
     """A strategy that never trades must produce finite, zero-ish stats (no NaN/inf)."""
     i = _idx(10)

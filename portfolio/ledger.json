@@ -1,0 +1,4 @@
+{
+  "_comment": "Forward decision ledger. /premarket logs EVERY idea (taken or vetoed) at decision time via tools/ledger.py; /postmarket scores open entries against the actual price path. Only SCORED FORWARD calls (logged before the outcome was known) are evidence of edge. Do not backfill historical calls — hindsight taints them.",
+  "entries": []
+}

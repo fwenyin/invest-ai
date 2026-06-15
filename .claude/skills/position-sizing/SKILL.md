@@ -8,6 +8,19 @@ description: Canonical position-sizing and risk-gate math for the desk. Use when
 The one place the desk computes size and verifies an idea against the hard limits in
 `config/risk_rules.yaml`. Keep every check tied to a number — never approve on vibes.
 
+## Enforcement: run the code, don't eyeball it
+The math below is **enforced by `tools/risk_gate.py`** (and the `risk_gate_check` MCP tool), not
+by hand. An LLM approximating floating-point math is not a risk control. Always run the gate and
+report its result; an idea the gate marks `REJECTED` must not be traded.
+```bash
+.venv/bin/python tools/risk_gate.py --ticker IWM --side long \
+  --entry 291.6 --stop 289.4 --target 299 --sector financials \
+  --day-pnl-pct 0 --new-trades-today 0 --correlated-open 0   # blackout assumed ACTIVE unless --no-blackout
+```
+Context flags (blackout / day-P&L / trades-today / correlation) default to the **most restrictive**
+value when unknown — `--no-blackout` is only legitimate after the econ calendar is verified clear.
+The formulas below are the reference for *reading* the gate output, not a substitute for running it.
+
 ## Inputs
 - `equity` — from `account.equity` in `config/risk_rules.yaml` (kept in sync with `ACCOUNT_EQUITY`).
 - `entry`, `stop`, `target` — from real chart levels (the technical-analyst's levels).

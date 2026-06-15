@@ -21,7 +21,7 @@ and journals* — never broker orders.
 
 | Command | When (ET) | Purpose |
 |---|---|---|
-| `/premarket` | 08:30 | Overnight gaps/futures, econ calendar, earnings, news/Trump/Reddit + yesterday's lessons → **day's game plan** |
+| `/premarket` | 08:30 | Overnight gaps/futures, econ calendar, earnings, news/Trump + yesterday's lessons → **day's game plan** |
 | `/open` | 09:30 | Opening-range read, which planned setups are triggering, anti-chase checklist |
 | `/midmorning` | 10:30 | Trend confirmation, manage positions, new intraday setups |
 | `/powerhour` | 15:00 | EOD positioning, close day-trades, swing hold/exit |
@@ -57,10 +57,9 @@ One cheap key (**Finnhub** free tier) + free sources. Exposed to the agents via 
 | `prices.py` | yfinance | quotes, intraday, gaps, indicator snapshot |
 | `options.py` | yfinance | chain, IV, put/call (delayed) |
 | `news.py` | Finnhub → Yahoo RSS | company + market news |
-| `calendar_econ.py` | Finnhub | econ (FOMC/CPI/NFP) + earnings calendar |
+| `calendar_econ.py` | Finnhub → Nasdaq (keyless) | econ (FOMC/CPI/NFP) + earnings calendar |
 | `financials.py` | yfinance | valuation multiples, margins, growth, balance-sheet health |
 | `trump.py` | free auto-updating archive (ix.cnn.io mirror) | Truth Social posts, ~5-min refresh, no auth |
-| `reddit.py` | public reddit JSON | WSB/stocks/options sentiment |
 | `substack.py` | your private RSS | Bottom Up Bulletin full posts |
 
 ---

@@ -1,0 +1,64 @@
+{
+  "_comment": "Long-term pick ledger. /weekly-longterm logs each conviction pick with its entry price, fair value, key assumption, and thesis indicators; each weekly run checkpoints price + QQQ + indicators via tools/lt_ledger.py. A pick must BEAT QQQ (positive excess) to justify itself \u2014 else just own the index. Theses resolve over years; track the indicators for faster feedback.",
+  "benchmark": "QQQ",
+  "entries": [
+    {
+      "id": "20260615-INTU",
+      "logged_at": "2026-06-15T06:18:41+00:00",
+      "ticker": "INTU",
+      "verdict": "BUY NOW",
+      "thesis": "SMB system-of-record (QuickBooks) + consumer-tax data lock-in (TurboTax); AI (Intuit Assist) is moat-accretive, runs on proprietary data rivals cannot replicate. Reverse-DCF prices in only ~3% growth vs 12-15% actual.",
+      "entry_price": 276.73,
+      "fair_value_low": 374.0,
+      "fair_value_high": 582.0,
+      "benchmark": "QQQ",
+      "benchmark_price_at_entry": 721.34,
+      "key_assumption": "durable revenue growth stays >=8% (vs ~3% implied by price); Direct File stays confined to the low-margin simple-return tail",
+      "thesis_indicators": [
+        {
+          "metric": "revenue_growth_pct",
+          "baseline": "13",
+          "target": ">8",
+          "latest": null
+        },
+        {
+          "metric": "live_assisted_attach",
+          "baseline": "stable",
+          "target": "stable_or_up",
+          "latest": null
+        }
+      ],
+      "checkpoints": [],
+      "status": "open"
+    },
+    {
+      "id": "20260615-ADBE",
+      "logged_at": "2026-06-15T06:19:00+00:00",
+      "ticker": "ADBE",
+      "verdict": "BUY NOW (controversial value)",
+      "thesis": "De-rated creative/document/experience SaaS at ~7.5x fwd P/E, 11% FCF yield; reverse-DCF prices in NEGATIVE growth while ARR still +13% and AI-first ARR tripled to >M. Asymmetric value-with-optionality, NOT a sleep-easy compounder.",
+      "entry_price": 204.02,
+      "fair_value_low": 286.0,
+      "fair_value_high": 610.0,
+      "benchmark": "QQQ",
+      "benchmark_price_at_entry": 721.34,
+      "key_assumption": "AI is a tailwind not an existential disruptor; net-new Digital Media ARR does NOT turn negative (kill-switch)",
+      "thesis_indicators": [
+        {
+          "metric": "digital_media_net_new_arr_M",
+          "baseline": "400",
+          "target": ">=400",
+          "latest": null
+        },
+        {
+          "metric": "net_dollar_retention",
+          "baseline": "stable",
+          "target": "stable_or_up",
+          "latest": null
+        }
+      ],
+      "checkpoints": [],
+      "status": "open"
+    }
+  ]
+}

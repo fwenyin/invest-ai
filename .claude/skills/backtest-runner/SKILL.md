@@ -14,8 +14,11 @@ overfitting. Strategies: `ma_cross`, `rsi_meanrev`, `breakout`, `gap_and_go`.
 ```bash
 .venv/bin/python backtest/engine.py --list                    # available strategies
 .venv/bin/python backtest/engine.py <TICKER> <STRATEGY> --tearsheet
+.venv/bin/python backtest/engine.py --universe <STRATEGY>     # run across the WHOLE universe
 # defaults: 5y, fees 5bps, slippage 5bps, $10k. Result JSON → backtest/results/.
 ```
+A single-ticker result is cherry-picked by construction. Prefer `--universe`: a rule with a real
+edge works across the names the desk scans; one that only works on a single ticker is curve-fit.
 
 ## Read the JSON honestly
 - **Edge vs buy & hold** — compare `full_period.total_return_pct` to `buy_hold_return_pct`.
@@ -28,5 +31,12 @@ overfitting. Strategies: `ma_cross`, `rsi_meanrev`, `breakout`, `gap_and_go`.
 
 ## Always caveat
 Past performance ≠ future results. This is one instrument over one period — confirm across a
-few tickers before relying on a strategy. A setup that only works in-sample is a trap; be
-blunt about weak results rather than rationalizing them.
+few tickers (or use `--universe`) before relying on a strategy. A setup that only works in-sample
+is a trap; be blunt about weak results rather than rationalizing them.
+
+**Survivorship**: the universe is today's *surviving/listed* names — delisted, merged, and
+bankrupt tickers are absent and the list skews to recent winners (`survivorship_warning` in every
+result). Backtest returns are an **upper bound**, not an estimate. And because an LLM is in the
+decision loop, a historical backtest of a rule the desk trades is contaminated by the model's
+hindsight — the only clean proof of edge is the **forward** ledger scorecard (`tools/ledger.py
+report`), not any backtest. See `docs/EDGE.md`.
