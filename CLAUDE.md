@@ -44,7 +44,6 @@ sized plans, journals.
 - Be selective — "NO TRADE" / "STAND ASIDE" is a valid, valued output.
 - Backtest verdicts: distrust edges with <20 trades or big in-sample→out-of-sample decay; prefer
   `--universe` over single-ticker; remember results are an upper bound (survivorship).
-- Always include the **not-financial-advice** framing in user-facing reports.
 
 ## Python env
 Use `.venv/bin/python` (created by `scripts/install.sh`). Keys load from `.env` (gitignored).
