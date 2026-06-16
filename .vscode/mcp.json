@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "to-the-moon-data": {
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["${workspaceFolder}/tools/mcp_server.py"]
+    }
+  }
+}

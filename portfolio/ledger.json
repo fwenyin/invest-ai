@@ -1,4 +1,59 @@
 {
-  "_comment": "Forward decision ledger. /premarket logs EVERY idea (taken or vetoed) at decision time via tools/ledger.py; /postmarket scores open entries against the actual price path. Only SCORED FORWARD calls (logged before the outcome was known) are evidence of edge. Do not backfill historical calls — hindsight taints them.",
-  "entries": []
+  "_comment": "Forward decision ledger. /premarket logs EVERY idea (taken or vetoed) at decision time via tools/ledger.py; /postmarket scores open entries against the actual price path. Only SCORED FORWARD calls (logged before the outcome was known) are evidence of edge. Do not backfill historical calls \u2014 hindsight taints them.",
+  "entries": [
+    {
+      "id": "20260616T085503-AMD",
+      "logged_at": "2026-06-16T08:55:03+00:00",
+      "session": "premarket",
+      "ticker": "AMD",
+      "side": "long",
+      "instrument": "stock",
+      "entry": 168.0,
+      "stop": 163.5,
+      "target": 178.0,
+      "reward_to_risk": 2.22,
+      "conviction": "high",
+      "thesis": "SMA200 reclaim on regime-shift day; semis leading on risk-on; mechanical CTA trigger if closes above 200MA",
+      "approved": false,
+      "vetoed": false,
+      "status": "open",
+      "outcome": null
+    },
+    {
+      "id": "20260616T085510-COIN",
+      "logged_at": "2026-06-16T08:55:10+00:00",
+      "session": "premarket",
+      "ticker": "COIN",
+      "side": "long",
+      "instrument": "stock",
+      "entry": 170.5,
+      "stop": 164.8,
+      "target": 182.5,
+      "reward_to_risk": 2.11,
+      "conviction": "med",
+      "thesis": "Highest-beta risk-on play; crypto base breakout; gap-and-go if holds past 10:30am with BTC confirmation",
+      "approved": false,
+      "vetoed": false,
+      "status": "open",
+      "outcome": null
+    },
+    {
+      "id": "20260616T085518-XLE",
+      "logged_at": "2026-06-16T08:55:18+00:00",
+      "session": "premarket",
+      "ticker": "XLE",
+      "side": "short",
+      "instrument": "stock",
+      "entry": 83.5,
+      "stop": 85.2,
+      "target": 79.0,
+      "reward_to_risk": 2.65,
+      "conviction": "med",
+      "thesis": "Oil supply returning on Iran deal; gap below SMA50; energy rotation out",
+      "approved": false,
+      "vetoed": true,
+      "status": "open",
+      "outcome": null
+    }
+  ]
 }
